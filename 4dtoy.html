@@ -38,6 +38,7 @@ varying vec4 v_color;
 void main() {
   // Multiply the position by the matrix.
   gl_Position = u_matrix * a_position;
+  gl_PointSize = 3.0;
 
   // Pass the color to the fragment shader.
   v_color = a_color;
@@ -209,7 +210,7 @@ function main() {
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
     // Draw the geometry.
-    var primitiveType = gl.TRIANGLES;
+    var primitiveType = gl.POINTS;
     var offset = 0;
     var count = 16 * 6;
     gl.drawArrays(primitiveType, offset, count);
