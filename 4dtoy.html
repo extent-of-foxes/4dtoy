@@ -29,21 +29,18 @@ Drag sliders to translate, rotate, and scale.
 <!-- vertex shader -->
 <script id="vertex-shader-3d" type="x-shader/x-vertex">
 attribute vec4 a_position;
-attribute vec4 a_color;
 
 uniform mat4 u_matrix;
 
 varying vec4 v_color;
 
 void main() {
-  // Multiply the position by the matrix.
   vec4 position = u_matrix * a_position;
+  lowp float lightness = position.w * 255.0 + 128.0;
+  v_color = vec4(lightness, lightness, lightness, 255);
   position.w = 1.0;
   gl_Position = position;
   gl_PointSize = 3.0;
-
-  // Pass the color to the fragment shader.
-  v_color = a_color;
 }
 </script>
 <!-- fragment shader -->
@@ -83,7 +80,6 @@ function main() {
 
   // look up where the vertex data needs to go.
   var positionLocation = gl.getAttribLocation(program, "a_position");
-  var colorLocation = gl.getAttribLocation(program, "a_color");
 
   // lookup uniforms
   var matrixLocation = gl.getUniformLocation(program, "u_matrix");
@@ -94,13 +90,6 @@ function main() {
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // Put geometry data into buffer
   setGeometry(gl);
-
-  // Create a buffer to put colors in
-  var colorBuffer = gl.createBuffer();
-  // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = colorBuffer)
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  // Put geometry data into buffer
-  setColors(gl);
 
   function radToDeg(r) {
     return r * 180 / Math.PI;
@@ -185,21 +174,6 @@ function main() {
     var offset = 0;        // start at the beginning of the buffer
     gl.vertexAttribPointer(
         positionLocation, size, type, normalize, stride, offset);
-
-    // Turn on the color attribute
-    gl.enableVertexAttribArray(colorLocation);
-
-    // Bind the color buffer.
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-
-    // Tell the attribute how to get data out of colorBuffer (ARRAY_BUFFER)
-    var size = 3;                 // 3 components per iteration
-    var type = gl.UNSIGNED_BYTE;  // the data is 8bit unsigned values
-    var normalize = true;         // normalize the data (convert from 0-255 to 0-1)
-    var stride = 0;               // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;               // start at the beginning of the buffer
-    gl.vertexAttribPointer(
-        colorLocation, size, type, normalize, stride, offset);
 
     // Compute the matrices
     var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
@@ -375,22 +349,6 @@ function setGeometry(gl) {
           0,   0, -1,  0,
           0,   0,  0,  1,
           0,   0,  0, -1]),
-      gl.STATIC_DRAW);
-}
-// Fill the buffer with colors for the 'F'.
-function setColors(gl) {
-  gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Uint8Array([
-          // left column front
-        255, 0, 0,
-        80, 80, 80,
-        90, 90, 90,
-        100, 100, 100,
-        110, 110, 110,
-        120, 120, 120,
-        255, 255, 0,
-        0, 255, 0]),
       gl.STATIC_DRAW);
 }
 
