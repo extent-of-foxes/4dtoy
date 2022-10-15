@@ -31,6 +31,7 @@ Drag sliders to translate, rotate, and scale.
 attribute vec4 a_position;
 
 uniform mat4 u_matrix;
+uniform mat4 u_projection;
 
 varying vec4 v_color;
 
@@ -39,7 +40,7 @@ void main() {
   lowp float lightness = position.w * 255.0 + 128.0;
   v_color = vec4(lightness, lightness, lightness, 255);
   position.w = 1.0;
-  gl_Position = position;
+  gl_Position = u_projection * position;
   gl_PointSize = 3.0;
 }
 </script>
@@ -83,6 +84,7 @@ function main() {
 
   // lookup uniforms
   var matrixLocation = gl.getUniformLocation(program, "u_matrix");
+  var projectionLocation = gl.getUniformLocation(program, "u_projection");
 
   // Create a buffer to put positions in
   var positionBuffer = gl.createBuffer();
@@ -176,17 +178,16 @@ function main() {
         positionLocation, size, type, normalize, stride, offset);
 
     // Compute the matrices
-    var matrix = m4.projection(gl.canvas.clientWidth, gl.canvas.clientHeight, 400);
-    matrix = m4.translate(matrix, translation[0], translation[1], translation[2]);
+    var projection = [0.9,0,0,0,0,0.9,0,0,0,0,0.5,0,0,0,0.5,1];
+    var matrix = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]; // Id
     matrix = m4.xRotate(matrix, rotation[0]);
     matrix = m4.yRotate(matrix, rotation[1]);
     matrix = m4.zRotate(matrix, rotation[2]);
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
-    matrix = m4.translate(matrix, 150, 150, 0);
-    matrix = m4.scale(matrix, 300, 300, 300);
 
     // Set the matrix.
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
+    gl.uniformMatrix4fv(projectionLocation, false, projection);
 
     // Draw the geometry.
     var primitiveType = gl.POINTS;
@@ -196,16 +197,6 @@ function main() {
 }
 
 var m4 = {
-
-  projection: function(width, height, depth) {
-    // Note: This matrix flips the Y axis so 0 is at the top.
-    return [
-       2 / width, 0, 0, 0,
-       0, -2 / height, 0, 0,
-       0, 0, 2 / depth, 0,
-      -1, 1, 0, 1,
-    ];
-  },
 
   multiply: function(a, b) {
     var a00 = a[0 * 4 + 0];
