@@ -14,15 +14,12 @@ Drag sliders to translate, rotate, and scale.
 <canvas id="canvas"></canvas>
 <div id="uiContainer">
   <div id="ui">
-    <div id="x"></div>
-    <div id="y"></div>
-    <div id="z"></div>
     <div id="angleX"></div>
     <div id="angleY"></div>
     <div id="angleZ"></div>
-    <div id="scaleX"></div>
-    <div id="scaleY"></div>
-    <div id="scaleZ"></div>
+    <div id="angleYW"></div>
+    <div id="angleZW"></div>
+    <div id="angleXW"></div>
   </div>
 </div>
 </body>
@@ -102,21 +99,18 @@ function main() {
   }
 
   var translation = [0, 0, 0];
-  var rotation = [degToRad(0), degToRad(0), degToRad(0)];
+  var rotation = [degToRad(0), degToRad(0), degToRad(0), 0, 0, 0];
   var scale = [1, 1, 1];
 
   drawScene();
 
   // Setup a ui.
-  webglLessonsUI.setupSlider("#x", {value: translation[0], slide: updatePosition(0), max: gl.canvas.width });
-  webglLessonsUI.setupSlider("#y", {value: translation[1], slide: updatePosition(1), max: gl.canvas.height});
-  webglLessonsUI.setupSlider("#z", {value: translation[2], slide: updatePosition(2), max: gl.canvas.height});
   webglLessonsUI.setupSlider("#angleX", {value: radToDeg(rotation[0]), slide: updateRotation(0), max: 360});
   webglLessonsUI.setupSlider("#angleY", {value: radToDeg(rotation[1]), slide: updateRotation(1), max: 360});
   webglLessonsUI.setupSlider("#angleZ", {value: radToDeg(rotation[2]), slide: updateRotation(2), max: 360});
-  webglLessonsUI.setupSlider("#scaleX", {value: scale[0], slide: updateScale(0), min: -5, max: 5, step: 0.01, precision: 2});
-  webglLessonsUI.setupSlider("#scaleY", {value: scale[1], slide: updateScale(1), min: -5, max: 5, step: 0.01, precision: 2});
-  webglLessonsUI.setupSlider("#scaleZ", {value: scale[2], slide: updateScale(2), min: -5, max: 5, step: 0.01, precision: 2});
+  webglLessonsUI.setupSlider("#angleYW", {value: radToDeg(rotation[3]), slide: updateRotation(3), max: 360});
+  webglLessonsUI.setupSlider("#angleZW", {value: radToDeg(rotation[4]), slide: updateRotation(4), max: 360});
+  webglLessonsUI.setupSlider("#angleXW", {value: radToDeg(rotation[5]), slide: updateRotation(5), max: 360});
 
   function updatePosition(index) {
     return function(event, ui) {
@@ -179,11 +173,15 @@ function main() {
 
     // Compute the matrices
     var projection = [0.9,0,0,0,0,0.9,0,0,0,0,0.5,0,0,0,0.5,1];
+    projection = m4.yzRotate(projection, 0.1);
+    projection = m4.xzRotate(projection, 0.1);
     var matrix = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]; // Id
     matrix = m4.yzRotate(matrix, rotation[0]);
     matrix = m4.xzRotate(matrix, rotation[1]);
     matrix = m4.xyRotate(matrix, rotation[2]);
-    matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
+    matrix = m4.ywRotate(matrix, rotation[3]);
+    matrix = m4.zwRotate(matrix, rotation[4]);
+    matrix = m4.xwRotate(matrix, rotation[5]);
 
     // Set the matrix.
     gl.uniformMatrix4fv(matrixLocation, false, matrix);
@@ -296,12 +294,48 @@ var m4 = {
     ];
   },
 
-  scaling: function(sx, sy, sz) {
+  ywRotation: function(angleInRadians) {
+    var c = Math.cos(angleInRadians);
+    var s = Math.sin(angleInRadians);
+
     return [
-      sx, 0,  0,  0,
-      0, sy,  0,  0,
-      0,  0, sz,  0,
-      0,  0,  0,  1,
+      1, 0, 0, 0,
+      0, c, 0, s,
+      0, 0, 1, 0,
+      0, -s, 0, c,
+    ];
+  },
+
+  xwRotation: function(angleInRadians) {
+    var c = Math.cos(angleInRadians);
+    var s = Math.sin(angleInRadians);
+
+    return [
+      c, 0, 0, -s,
+      0, 1, 0, 0,
+      0, 0, 1, 0,
+      s, 0, 0, c,
+    ];
+  },
+
+  zwRotation: function(angleInRadians) {
+    var c = Math.cos(angleInRadians);
+    var s = Math.sin(angleInRadians);
+
+    return [
+       1, 0, 0, 0,
+       0, 1, 0, 0,
+       0, 0, c, s,
+       0, 0, -s, c,
+    ];
+  },
+
+  scaling: function(s) {
+    return [
+      s, 0,  0,  0,
+      0, s,  0,  0,
+      0,  0, s,  0,
+      0,  0,  0,  s,
     ];
   },
 
@@ -321,8 +355,20 @@ var m4 = {
     return m4.multiply(m, m4.xyRotation(angleInRadians));
   },
 
-  scale: function(m, sx, sy, sz) {
-    return m4.multiply(m, m4.scaling(sx, sy, sz));
+  xwRotate: function(m, angleInRadians) {
+    return m4.multiply(m, m4.xwRotation(angleInRadians));
+  },
+
+  ywRotate: function(m, angleInRadians) {
+    return m4.multiply(m, m4.ywRotation(angleInRadians));
+  },
+
+  zwRotate: function(m, angleInRadians) {
+    return m4.multiply(m, m4.zwRotation(angleInRadians));
+  },
+
+  scale: function(m, s) {
+    return m4.multiply(m, m4.scaling(s));
   },
 
 };
