@@ -180,9 +180,9 @@ function main() {
     // Compute the matrices
     var projection = [0.9,0,0,0,0,0.9,0,0,0,0,0.5,0,0,0,0.5,1];
     var matrix = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1]; // Id
-    matrix = m4.xRotate(matrix, rotation[0]);
-    matrix = m4.yRotate(matrix, rotation[1]);
-    matrix = m4.zRotate(matrix, rotation[2]);
+    matrix = m4.yzRotate(matrix, rotation[0]);
+    matrix = m4.xzRotate(matrix, rotation[1]);
+    matrix = m4.xyRotate(matrix, rotation[2]);
     matrix = m4.scale(matrix, scale[0], scale[1], scale[2]);
 
     // Set the matrix.
@@ -260,7 +260,7 @@ var m4 = {
     ];
   },
 
-  xRotation: function(angleInRadians) {
+  yzRotation: function(angleInRadians) {
     var c = Math.cos(angleInRadians);
     var s = Math.sin(angleInRadians);
 
@@ -272,7 +272,7 @@ var m4 = {
     ];
   },
 
-  yRotation: function(angleInRadians) {
+  xzRotation: function(angleInRadians) {
     var c = Math.cos(angleInRadians);
     var s = Math.sin(angleInRadians);
 
@@ -284,7 +284,7 @@ var m4 = {
     ];
   },
 
-  zRotation: function(angleInRadians) {
+  xyRotation: function(angleInRadians) {
     var c = Math.cos(angleInRadians);
     var s = Math.sin(angleInRadians);
 
@@ -309,16 +309,16 @@ var m4 = {
     return m4.multiply(m, m4.translation(tx, ty, tz));
   },
 
-  xRotate: function(m, angleInRadians) {
-    return m4.multiply(m, m4.xRotation(angleInRadians));
+  yzRotate: function(m, angleInRadians) {
+    return m4.multiply(m, m4.yzRotation(angleInRadians));
   },
 
-  yRotate: function(m, angleInRadians) {
-    return m4.multiply(m, m4.yRotation(angleInRadians));
+  xzRotate: function(m, angleInRadians) {
+    return m4.multiply(m, m4.xzRotation(angleInRadians));
   },
 
-  zRotate: function(m, angleInRadians) {
-    return m4.multiply(m, m4.zRotation(angleInRadians));
+  xyRotate: function(m, angleInRadians) {
+    return m4.multiply(m, m4.xyRotation(angleInRadians));
   },
 
   scale: function(m, sx, sy, sz) {
