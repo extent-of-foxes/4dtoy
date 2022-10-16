@@ -34,7 +34,7 @@ varying vec4 v_color;
 
 void main() {
   vec4 position = u_matrix * a_position;
-  lowp float lightness = position.w * 0.5 + 0.5;
+  lowp float lightness = max(position.w * 0.25 + 0.25, position.w * 0.75 + 0.25);
   v_color = vec4(lightness, lightness, lightness, 255);
   position.w = 1.0;
   gl_Position = u_projection * position;
