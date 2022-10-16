@@ -37,11 +37,11 @@ varying vec4 v_color;
 
 void main() {
   vec4 position = u_matrix * a_position;
-  lowp float lightness = position.w * 255.0 + 128.0;
+  lowp float lightness = position.w * 0.5 + 0.5;
   v_color = vec4(lightness, lightness, lightness, 255);
   position.w = 1.0;
   gl_Position = u_projection * position;
-  gl_PointSize = 3.0;
+  gl_PointSize = 4.0;
 }
 </script>
 <!-- fragment shader -->
