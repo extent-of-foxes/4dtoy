@@ -88,7 +88,7 @@ function main() {
   // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // Put geometry data into buffer
-  var model = tesseract();
+  var model = hyperOctahedron();
   setGeometry(gl, model.points);
 
   function radToDeg(r) {
@@ -494,6 +494,51 @@ function tesseract() {
   return {
     numPoints: p.length / 4,
     points: p,
+  };
+}
+
+// interp([x, y, z, w], [x, y, z, w], 0 < t < 1)
+function interp(from, to, t) {
+  const len = Math.min(from.length, to.length);
+  var p = [];
+  for (var i = 0; i < len; i++) {
+    p.push((from[i] * (1 - t)) + (to[i] * t));
+  }
+  return p;
+}
+
+function hyperOctahedron() {
+  var points = [];
+  var interpolation = [];
+  for (var t = 0.0; t <= 1.0; t += 0.01) {
+    interpolation.push(t);
+  }
+  const corners = [ [  1,   0,  0,  0 ],
+                    [ -1,   0,  0,  0 ],
+                    [  0,   1,  0,  0 ],
+                    [  0,  -1,  0,  0 ],
+                    [  0,   0,  1,  0 ],
+                    [  0,   0, -1,  0 ],
+                    [  0,   0,  0,  1 ],
+                    [  0,   0,  0, -1 ] ];
+  const edgeCornerIndices = [];
+  for (var a = 0; a < 8; a++) {
+    for (var b = a+1; b < 8; b++) {
+      if (Math.floor(a / 2) !== Math.floor(b / 2)) {
+        edgeCornerIndices.push([a,b]);
+      }
+    }
+  }
+  for (var edge of edgeCornerIndices) {
+	const from = corners[edge[0]];
+	const to = corners[edge[1]];
+	for (var t of interpolation) {
+	  points.push(...(interp(from, to, t)));
+	}
+  }
+  return {
+    numPoints: points.length / 4,
+    points: points,
   };
 }
 
