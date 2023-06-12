@@ -88,7 +88,7 @@ function main() {
   // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
   gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   // Put geometry data into buffer
-  var model = hyperOctahedron();
+  var model = hyperOctahedronCell();
   setGeometry(gl, model.points);
 
   function radToDeg(r) {
@@ -535,6 +535,31 @@ function hyperOctahedron() {
 	for (var t of interpolation) {
 	  points.push(...(interp(from, to, t)));
 	}
+  }
+  return {
+    numPoints: points.length / 4,
+    points: points,
+  };
+}
+
+function hyperOctahedronCell() {
+  var points = [];
+  var interpolation = [];
+  for (var t = 0.0; t <= 1.0; t += 0.01) {
+    interpolation.push(t);
+  }
+  const corners = [ [  1,   0,  0,  0 ],
+                    [  0,   1,  0,  0 ],
+                    [  0,   0,  1,  0 ],
+                    [  0,   0,  0,  1 ] ];
+  for (var a = 0; a < 4; a++) {
+    for (var b = a+1; b < 4; b++) {
+    	const from = corners[a];
+    	const to = corners[b];
+    	for (var t of interpolation) {
+    	  points.push(...(interp(from, to, t)));
+    	}
+    }
   }
   return {
     numPoints: points.length / 4,
